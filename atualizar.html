@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+        <link rel="stylesheet" type="text/css" href="css/index.css" />
+        <title>Contatos da Agenda</title>
+    </head>
+    <body>
+        <h1>Atualizar contato</h1>
+        <input id="txFirstName" type="text" placeholder="Nome"><br/>
+        <input id="txLastName" type="text" placeholder="Sobre nome"><br/>
+        <input id="txPhone" type="text" placeholder="Telefone"><br/>
+        <input type="button" value="Atualizar" onClick="Atualizar()">
+        <input type="button" value="Cancelar" onClick="VoltarIndex()">
+
+        <script type="text/javascript" src="phonegap.js"></script>
+
+        <script type="text/javascript">
+
+          function _GET(name)
+          {
+            var url   = window.location.search.replace("?", "");
+            var itens = url.split("&");
+
+            for(n in itens)
+            {
+              if( itens[n].match(name) )
+              {
+                return decodeURIComponent(itens[n].replace(name+"=", ""));
+              }
+            }
+            return null;
+          }
+
+
+          document.addEventListener("deviceready", MontarForm, false);
+
+          function MontarForm(){
+
+            var nome = _GET('nome');
+
+            var fields       = ["displayName", 'name', "phoneNumbers", "id"];
+            var options      = new ContactFindOptions();
+            options.filter   = nome;
+            options.multiple = true;
+
+            navigator.contacts.find(fields, SetValues, onError, options);
+
+          }
+
+          function SetValues(contato){
+             var nome = document.getElementById('txFirstName');
+             var sobrenome = document.getElementById('txLastName');
+             var telefone = document.getElementById('txPhone');
+
+             for (var i = 0; i <= contato.length; i++) {
+                if (contato[i].id == _GET('id')) {
+                     nome.value = contato[i].name.givenName;
+                     sobrenome.value = contato[i].name.familyName;
+                     telefone.value = contato[i].phoneNumbers[0].value;
+                 }
+             }
+          }
+
+          function onError(contactError) {
+             alert('onError!');
+          }
+
+          function Atualizar(){
+
+            var nome = _GET('nome');
+
+            var fields       = ["displayName", 'name', "phoneNumbers", "id"];
+            var options      = new ContactFindOptions();
+            options.filter   = nome;
+            options.multiple = true;
+
+            navigator.contacts.find(fields, GravarContato, onError, options);
+          }
+
+          function GravarContato(contato){
+
+            var nome = document.getElementById('txFirstName').value;
+            var sobrenome = document.getElementById('txLastName').value;
+            var telefone = document.getElementById('txPhone').value;
+
+            for (var i = 0; i <= contato.length; i++) {
+                if (contato[i].id == _GET('id')) {
+                    contato[i].name.givenName = nome;
+                    contato[i].name.familyName = sobrenome;
+                    contato[i].phoneNumbers[0].value = telefone;
+
+                    contato[i].save();
+
+                    alert('Contato Atuazado com sucesso');
+
+                    VoltarIndex();
+                }
+            }
+
+          }
+
+          function VoltarIndex(){
+            location.href="index.html";
+          }
+
+        </script>
+    </body>
+</html>

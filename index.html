@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="format-detection" content="telephone=no" />
+        <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+        <link rel="stylesheet" type="text/css" href="css/index.css" />
+        <title>Agenda</title>
+    </head>
+    <body>
+        <h1>Cadastro de Contatos</h1>
+        <input id="txFirstName" type="text" placeholder="Nome"><br/>
+        <input id="txLastName" type="text" placeholder="Sobre nome"><br/>
+        <input id="txPhone" type="text" placeholder="Telefone"><br/>
+        <input type="button" value="Adicionar" onClick="AddValue()">
+        <input type="button" value="Refresh" onClick="listarRegistros()"> <br>
+        <br/>
+
+        <span id="lbUsers"></span>
+
+        <script type="text/javascript" src="phonegap.js"></script>
+        <script type="text/javascript">
+
+
+            document.addEventListener("deviceready", listarRegistros, false);
+
+            function listarRegistros(){
+
+              var fields       = ["id","displayName", "name", "phoneNumbers"];
+              var options      = new ContactFindOptions();
+              options.filter   = "";
+              options.multiple = true;
+
+              navigator.contacts.find(fields, MostrarLista, onError, options);
+
+            }
+
+
+            
+
+            function MostrarLista(ContatosArray){
+              var lista = '<table>';
+
+              for (var i = 0; i < ContatosArray.length; i++) {
+
+                   nome = ContatosArray[i].name.givenName;
+                   id = ContatosArray[i].id;
+
+                    lista = lista + '<tr><td>' + id + '</td> <td>' + nome + '</td> <td>' + ContatosArray[i].name.familyName + '</td>';
+                    if(ContatosArray[i].phoneNumbers)
+                       lista = lista + '<td>' + ContatosArray[i].phoneNumbers[0].value + '</td>';
+                   lista = lista + "<td><a href='atualizar.html?id=" + id + "&nome=" + nome + "'><img src='img/update.png' /></a></td>";
+                   lista = lista + "<td><img src='img/delete.png' id='" + id + "' onclick='apagar(this.id)' /> </td></tr>";
+
+              }
+
+              lista = lista + "</table>";
+
+              var lbUsers = document.getElementById("lbUsers");
+
+              lbUsers.innerHTML = lista;
+
+            }
+
+            function onError(contactError) {
+                alert('Erro' + contactError.code);
+            }
+
+
+            function AddValue(){
+                var contato = MontarContato();
+
+                contato.save();
+
+                alert('Contato cadastrado com sucesso');
+
+                listarRegistros();
+
+            }
+
+            function MontarContato(){
+
+               var nome = document.getElementById('txFirstName').value;
+               var sobrenome = document.getElementById('txLastName').value;
+               var telefone = document.getElementById('txPhone').value;
+
+               var contato = navigator.contacts.create();
+
+               var name = new ContactName();
+               name.familyName = sobrenome;
+               name.givenName = nome;
+               contato.name = name;
+
+               var phoneNumbers = [];
+               phoneNumbers[0] = new ContactField('home', telefone, true);
+               contato.phoneNumbers = phoneNumbers;
+
+               return contato;
+           }    
+
+           function apagar(id){
+              var fields       = ["id", 'name'];
+              var options      = new ContactFindOptions();
+              options.filter   = id;
+              options.multiple = false;
+
+              navigator.contacts.find(fields, remove, onError, options);
+
+           }
+
+           function remove(contato){
+              contato[0].remove(onRemoveSuccess,onRemoveError);
+           }
+
+           function onRemoveError(contactError) {
+                alert("Erro ao remover contato = " + contactError.code);
+            }
+
+            function onRemoveSuccess(contacts) {
+                alert("Contato removido com sucesso");
+
+                listarRegistros();
+            }
+
+        </script>
+    </body>
+</html>
